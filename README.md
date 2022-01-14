@@ -17,7 +17,7 @@ Cert Generation :
 ```
 sudo certbot certonly --standalone
 ```
-In the project envoy directory execute.Names changed to match envoy config file.
+In the project envoy directory execute the following.
 ```
 sudo cp /etc/letsencrypt/live/<your_domain_name>/fullchain.pem cert.pem
 
