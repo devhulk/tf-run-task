@@ -5,6 +5,9 @@ import (
   "encoding/json"
 	"net/http"
   "io"
+  "fmt"
+  "bytes"
+  "io/ioutil"
 )
 
 // TFCInitRequest - The request TFC sends to our runtask
@@ -32,7 +35,7 @@ type TFCInitRequest struct {
 // TFCTaskResponse - Response that we send to TFC after we finish 'task processing'
 type TFCTaskResponse struct {
   Data struct {
-    Type string `json:"data"`
+    Type string `json:"type"`
     Attributes struct {
       Status string `json:"status"`
       Message string `json:"message"`
@@ -41,47 +44,116 @@ type TFCTaskResponse struct {
   } `json:"data"`
 }
 
-// RootHandler - Root placeholder
-func RootHandler(w http.ResponseWriter, req *http.Request) {
-
-  w.WriteHeader(http.StatusOK)
+// TaskHandler - handles initial connection from TFC
+func TaskHandler(w http.ResponseWriter, req *http.Request) {
+  fmt.Println("SERVER HIT!")
   w.Header().Set("Content-Type", "application/json")
-
-  resp := make(map[string]string)
-  resp["message"] = "Status OK: (200)"
-
-  jsonResp, err := json.Marshal(resp)
-  if err != nil {
-    log.Fatalf("Error happened in JSON marshal. Err: %s", err)
-  }
-  w.Write(jsonResp)
-
-  return
-
-}
-
-// InitHandler - handles initial connection from TFC
-func InitHandler(w http.ResponseWriter, req *http.Request) {
-
-  w.Header().Set("Content-Type", "application/json")
+  tfcreq := TFCInitRequest{}
   bodyBytes, err := io.ReadAll(req.Body)
   if err != nil {
     w.WriteHeader(http.StatusBadRequest)
     log.Fatalf("Error body parsing.(404) Err: %s", err)
   }
-  resp := make(map[string]string)
-  resp["body"] = string(bodyBytes)
-
-  jsonResp, err := json.Marshal(resp)
-  if err != nil {
-    w.WriteHeader(http.StatusBadRequest)
-    log.Fatalf("Error happened in JSON marshal. (404) Err: %s", err)
-  }
+  json.Unmarshal(bodyBytes, &tfcreq)
+  fmt.Printf("CallbackURL: %s", tfcreq.TaskResultCallbackURL)
+  fmt.Printf("AccessToken: %s", tfcreq.AccessToken)
+  fmt.Printf("Authorization: Bearer %s", tfcreq.AccessToken)
 
   w.WriteHeader(http.StatusOK)
-  w.Write(jsonResp)
+  handleCallback(&tfcreq)
+
+  return 
+
+}
+
+// HandleCallback - evaluate task and execute callback to tfc
+func handleCallback(t *TFCInitRequest) {
+
+  fmt.Println("Formulating Callback Response...")
 
 
+  //TODO: callback the task_result_callback_url using access_token
+  fmt.Println("Deciding if you pass or fail my amazing test...")
+  response := passOrFail("fail")
+  taskResult, err := json.Marshal(&response)
+  if err != nil {
+      log.Fatalf("Error happened in task result json marshal. (404) Err: %s", err)
+  }
+  client := &http.Client{}
+  req, err := http.NewRequest(http.MethodPatch, t.TaskResultCallbackURL, bytes.NewBuffer(taskResult))
+  req.Header.Set("Content-Type", "application/vnd.api+json")
+  if err != nil {
+      log.Fatalf("Error happened in callback. (404) Err: %s", err)
+  }
+
+  req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", t.AccessToken))
+
+  fmt.Println("Executing callback...")
+  resp, err := client.Do(req)
+  if err != nil {
+      log.Fatalf("Error happened in callback client call. (404) Err: %s", err)
+  }
+
+  defer resp.Body.Close()
+
+  body, err := ioutil.ReadAll(resp.Body)
+  if err != nil {
+    log.Fatalf("Error reading callback response body. Err: %s ", err)
+  }
+
+  log.Println(string(body))
   return
+}
 
+func passOrFail(decision string) *TFCTaskResponse{
+  // TODO: Pass or Fail based on OPA policy
+
+  pass := TFCTaskResponse{
+    Data: struct {
+      Type string `json:"type"`
+      Attributes struct {
+        Status string `json:"status"`
+        Message string `json:"message"`
+        URL string `json:"url"`
+      } `json:"attributes"`
+    }{
+      Type: "task-results",
+      Attributes: struct {
+        Status string `json:"status"`
+        Message string `json:"message"`
+        URL string `json:"url"`
+      }{
+        Status: "passed",
+        Message: "YOUUUU SHALLLL PASSSSSSS",
+        URL: "https://devhulk.ddns.net",
+      },
+    },
+  }
+
+  fail := TFCTaskResponse{
+    Data: struct {
+      Type string `json:"type"`
+      Attributes struct {
+        Status string `json:"status"`
+        Message string `json:"message"`
+        URL string `json:"url"`
+      } `json:"attributes"`
+    }{
+      Type: "task-results",
+      Attributes: struct {
+        Status string `json:"status"`
+        Message string `json:"message"`
+        URL string `json:"url"`
+      }{
+        Status: "failed",
+        Message: "You were the CHOSEN ONEEE! IT WAS SAID YOU WOULD DESTROY THE SITH NOT JOIN THEM!",
+        URL: "https://devhulk.ddns.net",
+      },
+    },
+  }
+
+  if decision == "pass" {
+    return &pass
+  }
+  return &fail
 }

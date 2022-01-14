@@ -8,8 +8,7 @@ import (
 )
 
 func main() {
-    http.HandleFunc("/", runtask.RootHandler)
-    http.HandleFunc("/init", runtask.InitHandler)
+    http.HandleFunc("/", runtask.TaskHandler)
     port := ":8000"
 
     fmt.Printf("Run-Task Server running on port %s", port)
