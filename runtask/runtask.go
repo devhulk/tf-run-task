@@ -7,6 +7,7 @@ import (
   "io"
 )
 
+// TFCInitRequest - The request TFC sends to our runtask
 type TFCInitRequest struct {
   PayloadVersion int `json:"payload_version"`
   AccessToken string `json:"access_token"`
@@ -28,6 +29,7 @@ type TFCInitRequest struct {
   VCSCommitURL string `json:"vcs_commit_url"`
 }
 
+// TFCTaskResponse - Response that we send to TFC after we finish 'task processing'
 type TFCTaskResponse struct {
   Data struct {
     Type string `json:"data"`
