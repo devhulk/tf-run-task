@@ -71,8 +71,6 @@ func handleCallback(t *TFCInitRequest) {
 
   fmt.Println("Formulating Callback Response...")
 
-
-  //TODO: callback the task_result_callback_url using access_token
   fmt.Println("Deciding if you pass or fail my amazing test...")
   response := passOrFail("fail")
   taskResult, err := json.Marshal(&response)
