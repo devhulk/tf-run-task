@@ -86,8 +86,6 @@ func TaskHandler(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	handleCallback(&tfcreq)
 
-	return
-
 }
 
 // HandleCallback - evaluate task and execute callback to tfc
@@ -100,7 +98,7 @@ func handleCallback(t *TFCInitRequest) {
 	fmt.Println("Deciding if you pass or fail my amazing test...")
 
 	// update workspace variable  with JWT token
-	_, err := setTFCVariable(t)
+	jwt, err := setTFCVariable(t)
 	if err != nil {
 		log.Fatalf("Error setting JWT token. (404) Err: %s", err)
 		response = passOrFail("fail")
@@ -108,6 +106,8 @@ func handleCallback(t *TFCInitRequest) {
 	} else {
 		response = passOrFail("pass")
 	}
+
+	fmt.Println(jwt)
 
 	taskResult, err := json.Marshal(&response)
 	if err != nil {
@@ -137,7 +137,6 @@ func handleCallback(t *TFCInitRequest) {
 	}
 
 	log.Println(string(body))
-	return
 }
 
 func passOrFail(decision string) *TFCTaskResponse {
