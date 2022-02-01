@@ -275,7 +275,7 @@ func setTFCVariable(t *TFCInitRequest) (string, error) {
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", t.AccessToken))
 
-	fmt.Println("Executing callback...")
+	fmt.Println("Executing variable update...")
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatalf("Error happened in callback client call. (404) Err: %s", err)
@@ -287,6 +287,8 @@ func setTFCVariable(t *TFCInitRequest) (string, error) {
 	if err != nil {
 		log.Fatalf("Error reading callback response body. Err: %s ", err)
 	}
+
+	fmt.Printf("%v", body)
 
 	return fmt.Sprint(body), err
 }
