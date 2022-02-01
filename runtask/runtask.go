@@ -84,12 +84,23 @@ func TaskHandler(w http.ResponseWriter, req *http.Request) {
 	fmt.Printf("Authorization: Bearer %s", tfcreq.AccessToken)
 
 	w.WriteHeader(http.StatusOK)
-	handleCallback(&tfcreq)
+	jwt, err := setTFCVariable(&tfcreq)
+	if err != nil {
+		log.Fatalf("Error setting JWT token. (404) Err: %s", err)
+	}
+
+	fmt.Println(jwt)
+	cb, err := handleCallback(&tfcreq)
+	if err != nil {
+		log.Fatalf("Error setting JWT token. (404) Err: %s", err)
+	}
+
+	fmt.Println(cb)
 
 }
 
 // HandleCallback - evaluate task and execute callback to tfc
-func handleCallback(t *TFCInitRequest) {
+func handleCallback(t *TFCInitRequest) (string, error) {
 
 	var response *TFCTaskResponse
 
@@ -98,20 +109,11 @@ func handleCallback(t *TFCInitRequest) {
 	fmt.Println("Deciding if you pass or fail my amazing test...")
 
 	// update workspace variable  with JWT token
-	jwt, err := setTFCVariable(t)
-	if err != nil {
-		log.Fatalf("Error setting JWT token. (404) Err: %s", err)
-		response = passOrFail("fail")
-		return
-	} else {
-		response = passOrFail("pass")
-	}
-
-	fmt.Println(jwt)
 
 	taskResult, err := json.Marshal(&response)
 	if err != nil {
 		log.Fatalf("Error happened in task result json marshal. (404) Err: %s", err)
+		return "", err
 	}
 
 	client := &http.Client{}
@@ -119,6 +121,7 @@ func handleCallback(t *TFCInitRequest) {
 	req.Header.Set("Content-Type", "application/vnd.api+json")
 	if err != nil {
 		log.Fatalf("Error happened in callback. (404) Err: %s", err)
+		return "", err
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", t.AccessToken))
@@ -127,6 +130,7 @@ func handleCallback(t *TFCInitRequest) {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatalf("Error happened in callback client call. (404) Err: %s", err)
+		return "", err
 	}
 
 	defer resp.Body.Close()
@@ -134,9 +138,10 @@ func handleCallback(t *TFCInitRequest) {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatalf("Error reading callback response body. Err: %s ", err)
+		return "", err
 	}
 
-	log.Println(string(body))
+	return string(body), err
 }
 
 func passOrFail(decision string) *TFCTaskResponse {
@@ -278,7 +283,7 @@ func setTFCVariable(t *TFCInitRequest) (string, error) {
 	fmt.Println("Executing variable update...")
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalf("Error happened in callback client call. (404) Err: %s", err)
+		log.Fatalf("Error happened in callback TFC Variable Set call. (404) Err: %s", err)
 	}
 
 	defer resp.Body.Close()
