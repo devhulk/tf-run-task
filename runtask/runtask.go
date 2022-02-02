@@ -289,6 +289,7 @@ func setTFCVariable(t *TFCInitRequest) (string, error) {
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("TFC_TOKEN")))
+	fmt.Println(os.Getenv("TFC_TOKEN"))
 
 	fmt.Println("Executing variable update...")
 	resp, err := client.Do(req)
