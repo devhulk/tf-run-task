@@ -96,6 +96,8 @@ func TaskHandler(w http.ResponseWriter, req *http.Request) {
 		status = "pass"
 	}
 
+	fmt.Println("JWT in Handler", jwt)
+
 	cb, err := handleCallback(&tfcreq, status)
 	if err != nil {
 		log.Fatalf("Error setting JWT token. (404) Err: %s", err)
