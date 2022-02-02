@@ -50,8 +50,10 @@ TFCB Config:
 2. Then configure the run task in a workspace of your choice. 
 3. Trigger the workspace and your run task will show up after the plan phase. If the message gets printed out it was successful. 
 
-You can change if it will pass or fail in the runtask/runtask.go file. The passOrFail() function takes a string that lets you decide if the test passes or fails. In VI its on line 77.  
+My domain is https://devhulk.ddns.net/. You would use that when setting up the task in TFCB, I have it up most of the time but not checking religiously. No HMAC yet. 
 
-Your welcome to test using mine but no guarentees it will be up. If you all want I can throw up an instance that won't be deleted. Just let me know. My domain is https://devhulk.ddns.net/. You would use that when setting up the task in TFCB. No HMAC yet. 
+## JWT
+
+Added 02/01/22. Just wanted to test adding a JWT token to the workspace variables. Through out my testing I couldn't use the token given back from the run task, I had to use my own TFE/C token with the proper permissions. This is a good thing I think, if the token given back from the task could be used for org/workspace admin that would make run-tasks a vulnerability. 
 
 
