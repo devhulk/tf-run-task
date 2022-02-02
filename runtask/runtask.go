@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/devhulk/test-task/jwt"
 )
@@ -287,7 +288,7 @@ func setTFCVariable(t *TFCInitRequest) (string, error) {
 		log.Fatalf("Error happened in callback. (404) Err: %s", err)
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", t.AccessToken))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("TFC_TOKEN")))
 
 	fmt.Println("Executing variable update...")
 	resp, err := client.Do(req)
