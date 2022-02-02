@@ -70,6 +70,9 @@ type TFCVariableReq struct {
 
 // TaskHandler - handles initial connection from TFC
 func TaskHandler(w http.ResponseWriter, req *http.Request) {
+
+	var status string
+
 	fmt.Println("SERVER HIT!")
 	w.Header().Set("Content-Type", "application/json")
 	tfcreq := TFCInitRequest{}
@@ -83,14 +86,18 @@ func TaskHandler(w http.ResponseWriter, req *http.Request) {
 	fmt.Printf("AccessToken: %s", tfcreq.AccessToken)
 	fmt.Printf("Authorization: Bearer %s", tfcreq.AccessToken)
 
-	w.WriteHeader(http.StatusOK)
+	defer w.WriteHeader(http.StatusOK)
 	jwt, err := setTFCVariable(&tfcreq)
 	if err != nil {
 		log.Fatalf("Error setting JWT token. (404) Err: %s", err)
+		status = "fail"
+		defer w.WriteHeader(http.StatusBadRequest)
+	} else {
+		status = "pass"
 	}
 
 	fmt.Println(jwt)
-	cb, err := handleCallback(&tfcreq)
+	cb, err := handleCallback(&tfcreq, status)
 	if err != nil {
 		log.Fatalf("Error setting JWT token. (404) Err: %s", err)
 	}
@@ -100,9 +107,9 @@ func TaskHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 // HandleCallback - evaluate task and execute callback to tfc
-func handleCallback(t *TFCInitRequest) (string, error) {
+func handleCallback(t *TFCInitRequest, status string) (string, error) {
 
-	var response *TFCTaskResponse
+	response := passOrFail(status)
 
 	fmt.Println("Formulating Callback Response...")
 
@@ -198,6 +205,8 @@ func passOrFail(decision string) *TFCTaskResponse {
 }
 
 func setTFCVariable(t *TFCInitRequest) (string, error) {
+
+	fmt.Println("In SetTFCVARIABLE...")
 
 	jwtToken, err := jwt.GetJWT()
 	if err != nil {
