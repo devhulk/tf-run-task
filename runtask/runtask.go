@@ -86,12 +86,11 @@ func TaskHandler(w http.ResponseWriter, req *http.Request) {
 	fmt.Printf("AccessToken: %s", tfcreq.AccessToken)
 	fmt.Printf("Authorization: Bearer %s", tfcreq.AccessToken)
 
-	defer w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 	jwt, err := setTFCVariable(&tfcreq)
 	if err != nil {
 		log.Fatalf("Error setting JWT token. (404) Err: %s", err)
 		status = "fail"
-		w.WriteHeader(http.StatusBadRequest)
 	} else {
 		status = "pass"
 	}
