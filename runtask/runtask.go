@@ -96,7 +96,6 @@ func TaskHandler(w http.ResponseWriter, req *http.Request) {
 		status = "pass"
 	}
 
-	fmt.Println(jwt)
 	cb, err := handleCallback(&tfcreq, status)
 	if err != nil {
 		log.Fatalf("Error setting JWT token. (404) Err: %s", err)
@@ -292,7 +291,7 @@ func setTFCVariable(t *TFCInitRequest) (string, error) {
 	fmt.Println("Executing variable update...")
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalf("Error happened in callback TFC Variable Set call. (404) Err: %s", err)
+		log.Fatalf("Error happened in callback TFC Variable Set call. (404) Err: %s", err.Error())
 	}
 
 	defer resp.Body.Close()
@@ -302,7 +301,7 @@ func setTFCVariable(t *TFCInitRequest) (string, error) {
 		log.Fatalf("Error reading callback response body. Err: %s ", err)
 	}
 
-	fmt.Printf("%v", body)
+	fmt.Printf("%s", body)
 
-	return fmt.Sprint(body), err
+	return string(body), err
 }
