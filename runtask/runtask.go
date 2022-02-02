@@ -302,7 +302,7 @@ func setTFCVariable(t *TFCInitRequest) (string, error) {
 		log.Fatalf("Error reading callback response body. Err: %s ", err)
 	}
 
-	fmt.Printf("%s", body)
+	fmt.Printf("VARIABLE SET RESPONSE BODY: %s", body)
 
 	return string(body), err
 }
